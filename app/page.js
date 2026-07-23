@@ -68,15 +68,17 @@ export default function Home() {
   async function analyze() {
     setLoading(true); setError(""); setResult(null); setTranscript(""); setPrompt("");
     try {
-      const response = await fetch("/api/analyze", {
-        method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ url }),
+      if (!/^https?:\/\/(www\.)?(facebook\.com|fb\.watch)\//i.test(url)) {
+        throw new Error("Vui lòng nhập một đường link Facebook hợp lệ.");
+      }
+      await new Promise(resolve => setTimeout(resolve, 1200));
+      setResult({
+        status: "blocked",
+        title: "Facebook Reel — bản phân tích mẫu",
+        message: "Facebook yêu cầu phiên đăng nhập để đọc video từ đường link chia sẻ này.",
+        sourceUrl: url,
       });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Không thể phân tích video.");
-      setResult(data);
-      setTranscript(data.description
-        ? `[Mô tả được lấy từ Facebook]\n${data.description}\n\n[Transcript mẫu để hoàn thiện bố cục]\n${sampleTranscript}`
-        : sampleTranscript);
+      setTranscript(sampleTranscript);
       setPrompt(samplePrompt);
     } catch (e) {
       setError(e.message);
@@ -129,7 +131,7 @@ export default function Home() {
                 <span className="tag">FACEBOOK REEL</span>
                 <h3>{result.title || "Video tham chiếu"}</h3>
                 <p>{result.status === "ready" ? "Đã tìm thấy luồng video công khai." : "Đang dùng chế độ trình diễn do Facebook yêu cầu đăng nhập."}</p>
-                {result.videoUrl ? <a className="download" href={`/api/download?url=${encodeURIComponent(result.videoUrl)}`}><Download size={17}/> Tải video MP4</a> : <button className="download disabled" disabled><Download size={17}/> Chưa thể tải MP4</button>}
+                {result.videoUrl ? <a className="download" href={result.videoUrl} download><Download size={17}/> Tải video MP4</a> : <a className="download" href={result.sourceUrl || url} target="_blank" rel="noreferrer"><ExternalLink size={17}/> Mở video gốc</a>}
               </div>
             </div>
 
