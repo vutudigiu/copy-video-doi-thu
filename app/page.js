@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   ArrowRight, Check, ChevronDown, Clipboard, Download, ExternalLink,
-  FileText, Film, Link2, LoaderCircle, LockKeyhole, MessageCircle, Play,
+  FileText, Film, KeyRound, Link2, LoaderCircle, LockKeyhole, MessageCircle, Play,
   Search, Sparkles, WandSparkles, X
 } from "lucide-react";
 
@@ -67,11 +67,17 @@ export default function Home() {
   const [paymentOpen, setPaymentOpen] = useState(false);
   const [paymentSubmitted, setPaymentSubmitted] = useState(false);
   const [copiedValue, setCopiedValue] = useState("");
+  const [unlocked, setUnlocked] = useState(false);
+  const [licenseEmail, setLicenseEmail] = useState("");
+  const [licenseCode, setLicenseCode] = useState("");
+  const [licenseError, setLicenseError] = useState("");
+  const [licenseLoading, setLicenseLoading] = useState(false);
 
   const ready = useMemo(() => Boolean(result), [result]);
 
   useEffect(() => {
     setTrialUsed(localStorage.getItem("vutuai_trial_used") === "1");
+    fetch("/api/license/status").then(r => r.json()).then(data => setUnlocked(Boolean(data.unlocked))).catch(() => {});
   }, []);
 
   async function copyPaymentValue(value, key) {
@@ -81,7 +87,7 @@ export default function Home() {
   }
 
   async function analyze() {
-    if (trialUsed) {
+    if (trialUsed && !unlocked) {
       setPaymentOpen(true);
       return;
     }
@@ -106,12 +112,24 @@ export default function Home() {
     } finally { setLoading(false); }
   }
 
+  async function activateLicense(e) {
+    e.preventDefault(); setLicenseLoading(true); setLicenseError("");
+    const response = await fetch("/api/license/activate", {
+      method: "POST", headers: { "content-type": "application/json" },
+      body: JSON.stringify({ email: licenseEmail, code: licenseCode }),
+    });
+    const data = await response.json();
+    setLicenseLoading(false);
+    if (!response.ok) return setLicenseError(data.error);
+    setUnlocked(true); setPaymentOpen(false);
+  }
+
   return (
     <main>
       <header>
         <a className="brand" href="#"><span className="brand-mark"><Play fill="currentColor" size={15}/></span><span>Copy<span>Video</span></span></a>
         <nav><a href="#tool">Công cụ</a><a href="#workflow">Cách hoạt động</a><a href="#faq">Lưu ý</a></nav>
-        <div className="status-pill"><i/> AI Studio</div>
+        <div className="status-pill"><i/> {unlocked ? "Đã mở khóa" : "AI Studio"}</div>
       </header>
 
       <section className="hero">
@@ -172,11 +190,11 @@ export default function Home() {
               <textarea value={tab === "transcript" ? transcript : prompt} onChange={e => tab === "transcript" ? setTranscript(e.target.value) : setPrompt(e.target.value)} />
               <div className="editor-foot"><span>Có thể chỉnh sửa trực tiếp</span><button onClick={()=>setTab(tab === "transcript" ? "prompt" : "transcript")}>{tab === "transcript" ? "Xem prompt tái tạo" : "Xem lời thoại"} <ArrowRight size={14}/></button></div>
             </div>
-            <div className="unlock-banner">
+            {!unlocked && <div className="unlock-banner">
               <div className="unlock-icon"><LockKeyhole /></div>
               <div><span>ĐÃ DÙNG XONG 1 VIDEO MIỄN PHÍ</span><h3>Mở khóa không giới hạn video</h3><p>Truy cập toàn bộ tính năng chỉ với một lần thanh toán.</p></div>
               <button onClick={() => setPaymentOpen(true)}>Mở Khóa Tất Cả Tính Năng <ArrowRight size={16}/></button>
-            </div>
+            </div>}
           </div>
         )}
       </section>
@@ -233,6 +251,13 @@ export default function Home() {
               <div className="payment-success"><Check/><div><strong>Đã ghi nhận yêu cầu xác nhận</strong><span>Vui lòng gửi ảnh giao dịch qua Zalo để được kích hoạt tài khoản.</span></div></div>
             )}
             <a className="zalo-button" href="https://zalo.me/84973671215" target="_blank" rel="noreferrer"><MessageCircle size={19}/> NHẮN TIN ZALO CHO VŨ TƯ <ExternalLink size={15}/></a>
+            <div className="license-divider"><span>ĐÃ NHẬN MÃ KÍCH HOẠT?</span></div>
+            <form className="license-form" onSubmit={activateLicense}>
+              <input type="email" value={licenseEmail} onChange={e => setLicenseEmail(e.target.value)} placeholder="Email đã đăng ký" required />
+              <input value={licenseCode} onChange={e => setLicenseCode(e.target.value.toUpperCase())} placeholder="Mã kích hoạt" required />
+              {licenseError && <div className="license-error">{licenseError}</div>}
+              <button disabled={licenseLoading}><KeyRound size={17}/> {licenseLoading ? "ĐANG KIỂM TRA..." : "KÍCH HOẠT TRỌN ĐỜI"}</button>
+            </form>
             <p className="payment-note">Sau khi kiểm tra giao dịch, Vũ Tư AI sẽ hướng dẫn bạn kích hoạt quyền sử dụng.</p>
           </section>
         </div>
