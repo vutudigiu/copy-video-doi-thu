@@ -1,4 +1,6 @@
 .next/
+dist/
+out/
 node_modules/
 *.log
 .DS_Store
