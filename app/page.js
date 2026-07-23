@@ -1,9 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   ArrowRight, Check, ChevronDown, Clipboard, Download, ExternalLink,
-  FileText, Film, Link2, LoaderCircle, Play, Search, Sparkles, WandSparkles
+  FileText, Film, Link2, LoaderCircle, LockKeyhole, MessageCircle, Play,
+  Search, Sparkles, WandSparkles, X
 } from "lucide-react";
 
 const SAMPLE_URL = "https://www.facebook.com/share/r/1DgHrgNvWv/";
@@ -62,10 +63,28 @@ export default function Home() {
   const [transcript, setTranscript] = useState("");
   const [prompt, setPrompt] = useState("");
   const [tab, setTab] = useState("transcript");
+  const [trialUsed, setTrialUsed] = useState(false);
+  const [paymentOpen, setPaymentOpen] = useState(false);
+  const [paymentSubmitted, setPaymentSubmitted] = useState(false);
+  const [copiedValue, setCopiedValue] = useState("");
 
   const ready = useMemo(() => Boolean(result), [result]);
 
+  useEffect(() => {
+    setTrialUsed(localStorage.getItem("vutuai_trial_used") === "1");
+  }, []);
+
+  async function copyPaymentValue(value, key) {
+    await navigator.clipboard.writeText(value);
+    setCopiedValue(key);
+    setTimeout(() => setCopiedValue(""), 1500);
+  }
+
   async function analyze() {
+    if (trialUsed) {
+      setPaymentOpen(true);
+      return;
+    }
     setLoading(true); setError(""); setResult(null); setTranscript(""); setPrompt("");
     try {
       if (!/^https?:\/\/(www\.)?(facebook\.com|fb\.watch)\//i.test(url)) {
@@ -80,6 +99,8 @@ export default function Home() {
       });
       setTranscript(sampleTranscript);
       setPrompt(samplePrompt);
+      localStorage.setItem("vutuai_trial_used", "1");
+      setTrialUsed(true);
     } catch (e) {
       setError(e.message);
     } finally { setLoading(false); }
@@ -151,6 +172,11 @@ export default function Home() {
               <textarea value={tab === "transcript" ? transcript : prompt} onChange={e => tab === "transcript" ? setTranscript(e.target.value) : setPrompt(e.target.value)} />
               <div className="editor-foot"><span>Có thể chỉnh sửa trực tiếp</span><button onClick={()=>setTab(tab === "transcript" ? "prompt" : "transcript")}>{tab === "transcript" ? "Xem prompt tái tạo" : "Xem lời thoại"} <ArrowRight size={14}/></button></div>
             </div>
+            <div className="unlock-banner">
+              <div className="unlock-icon"><LockKeyhole /></div>
+              <div><span>ĐÃ DÙNG XONG 1 VIDEO MIỄN PHÍ</span><h3>Mở khóa không giới hạn video</h3><p>Truy cập toàn bộ tính năng chỉ với một lần thanh toán.</p></div>
+              <button onClick={() => setPaymentOpen(true)}>Mở Khóa Tất Cả Tính Năng <ArrowRight size={16}/></button>
+            </div>
           </div>
         )}
       </section>
@@ -171,6 +197,46 @@ export default function Home() {
       </section>
 
       <footer><div className="brand"><span className="brand-mark"><Play fill="currentColor" size={14}/></span><span>Copy<span>Video</span></span></div><p>© 2026 Video Intelligence Studio</p><button>Tiếng Việt <ChevronDown size={13}/></button></footer>
+
+      {paymentOpen && (
+        <div className="modal-backdrop" onMouseDown={() => setPaymentOpen(false)}>
+          <section className="payment-modal" onMouseDown={e => e.stopPropagation()}>
+            <button className="modal-close" onClick={() => setPaymentOpen(false)} aria-label="Đóng"><X size={19}/></button>
+            <div className="payment-kicker"><LockKeyhole size={14}/> MỞ KHÓA TRỌN ĐỜI</div>
+            <h2>Mở khóa tất cả tính năng</h2>
+            <p className="payment-lead">Quét mã QR hoặc chuyển khoản thủ công theo thông tin bên dưới.</p>
+
+            <div className="payment-layout">
+              <div className="qr-wrap">
+                <img src="/qr-mb-bank.jpg" alt="Mã QR thanh toán MB Bank của Vũ Tư AI" />
+                <span>Quét bằng ứng dụng ngân hàng</span>
+              </div>
+              <div className="payment-details">
+                <div className="price"><span>THANH TOÁN MỘT LẦN</span><strong>199.000<small>đ</small></strong></div>
+                <div className="bank-row"><span>Ngân hàng</span><strong>MB BANK</strong></div>
+                <div className="bank-row"><span>Chủ tài khoản</span><strong>VU THI TU</strong></div>
+                <div className="bank-row copy-row">
+                  <span>Số tài khoản</span>
+                  <strong>0973671215</strong>
+                  <button onClick={() => copyPaymentValue("0973671215", "account")}>{copiedValue === "account" ? <Check/> : <Clipboard/>}{copiedValue === "account" ? "Đã chép" : "Sao chép"}</button>
+                </div>
+                <div className="transfer-note">
+                  <span>NỘI DUNG CHUYỂN KHOẢN</span>
+                  <div><strong>VUTUAI</strong><button onClick={() => copyPaymentValue("VUTUAI", "note")}>{copiedValue === "note" ? <Check/> : <Clipboard/>}{copiedValue === "note" ? "Đã chép" : "Sao chép"}</button></div>
+                </div>
+              </div>
+            </div>
+
+            {!paymentSubmitted ? (
+              <button className="confirm-payment" onClick={() => setPaymentSubmitted(true)}><Check size={18}/> XÁC NHẬN ĐÃ THANH TOÁN</button>
+            ) : (
+              <div className="payment-success"><Check/><div><strong>Đã ghi nhận yêu cầu xác nhận</strong><span>Vui lòng gửi ảnh giao dịch qua Zalo để được kích hoạt tài khoản.</span></div></div>
+            )}
+            <a className="zalo-button" href="https://zalo.me/84973671215" target="_blank" rel="noreferrer"><MessageCircle size={19}/> NHẮN TIN ZALO CHO VŨ TƯ <ExternalLink size={15}/></a>
+            <p className="payment-note">Sau khi kiểm tra giao dịch, Vũ Tư AI sẽ hướng dẫn bạn kích hoạt quyền sử dụng.</p>
+          </section>
+        </div>
+      )}
     </main>
   );
 }
