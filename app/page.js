@@ -94,6 +94,12 @@ export default function Home() {
       </header>
 
       <section className="hero">
+        <div className="creator-profile">
+          <div className="creator-avatar">
+            <img src="/vu-tu-ai.jpg" alt="Vũ Tư AI - Chuyên gia Video AI" />
+          </div>
+          <strong>VŨ TƯ AI - CHUYÊN GIA VIDEO AI</strong>
+        </div>
         <div className="eyebrow"><Sparkles size={14}/> Video Intelligence Workspace</div>
         <h1>Biến video đối thủ thành<br/><em>công thức sáng tạo.</em></h1>
         <p>Dán link Facebook Reel. Nhận video MP4, toàn bộ lời thoại và prompt tái tạo chi tiết — trong một workspace duy nhất.</p>
