@@ -137,12 +137,12 @@ export default function Home() {
         <div className="eyebrow"><Sparkles size={14}/> Video Intelligence Workspace</div>
         <h1>Sao chép toàn bộ lời thoại<br/><em>từ Facebook Reel.</em></h1>
         <p>Dán đường link Reel công khai, AI sẽ nghe video và chuyển toàn bộ lời thoại thành văn bản để bạn sao chép ngay.</p>
-        <div className="trust-row"><span><Check/> Lời thoại tiếng Việt</span><span><Check/> Có thể chỉnh sửa</span><span><Check/> Sao chép một chạm</span></div>
+        <div className="trust-row"><span><Check/> Dùng thử 1 video tối đa 60 giây</span><span><Check/> Có thể chỉnh sửa</span><span><Check/> Sao chép một chạm</span></div>
       </section>
 
       <section id="tool" className="workspace">
         <div className="workspace-head">
-          <div><span className="step">01</span><div><h2>Lấy lời thoại Facebook Reel</h2><p>Dán đường link công khai để bắt đầu</p></div></div>
+          <div><span className="step">01</span><div><h2>Lấy lời thoại Facebook Reel</h2><p>Dùng thử 1 video công khai, thời lượng tối đa 60 giây</p></div></div>
           <span className="secure"><i/> Xử lý bảo mật</span>
         </div>
         <div className="input-wrap">
@@ -172,7 +172,7 @@ export default function Home() {
             </div>
             {!unlocked && <div className="unlock-banner">
               <div className="unlock-icon"><LockKeyhole /></div>
-              <div><span>ĐÃ DÙNG XONG 1 VIDEO MIỄN PHÍ</span><h3>Mở khóa không giới hạn video</h3><p>Truy cập toàn bộ tính năng chỉ với một lần thanh toán.</p></div>
+              <div><span>ĐÃ DÙNG XONG 1 VIDEO MIỄN PHÍ • TỐI ĐA 60 GIÂY</span><h3>Mở khóa không giới hạn video</h3><p>Truy cập toàn bộ tính năng chỉ với một lần thanh toán 99.000đ.</p></div>
               <button onClick={() => setPaymentOpen(true)}>Mở Khóa Tất Cả Tính Năng <ArrowRight size={16}/></button>
             </div>}
           </div>
@@ -202,7 +202,7 @@ export default function Home() {
             <button className="modal-close" onClick={() => setPaymentOpen(false)} aria-label="Đóng"><X size={19}/></button>
             <div className="payment-kicker"><LockKeyhole size={14}/> MỞ KHÓA TRỌN ĐỜI</div>
             <h2>Mở khóa tất cả tính năng</h2>
-            <p className="payment-lead">Quét mã QR hoặc chuyển khoản thủ công theo thông tin bên dưới.</p>
+            <p className="payment-lead">Dùng thử 1 video tối đa 60 giây. Quét mã QR hoặc chuyển khoản thủ công để mở khóa.</p>
 
             <div className="payment-layout">
               <div className="qr-wrap">
@@ -210,7 +210,7 @@ export default function Home() {
                 <span>Quét bằng ứng dụng ngân hàng</span>
               </div>
               <div className="payment-details">
-                <div className="price"><span>THANH TOÁN MỘT LẦN</span><strong>199.000<small>đ</small></strong></div>
+                <div className="price"><span>THANH TOÁN MỘT LẦN</span><strong>99.000<small>đ</small></strong></div>
                 <div className="bank-row"><span>Ngân hàng</span><strong>MB BANK</strong></div>
                 <div className="bank-row"><span>Chủ tài khoản</span><strong>VU THI TU</strong></div>
                 <div className="bank-row copy-row">
