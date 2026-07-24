@@ -93,18 +93,16 @@ export default function Home() {
     }
     setLoading(true); setError(""); setResult(null); setTranscript(""); setPrompt("");
     try {
-      if (!/^https?:\/\/(www\.)?(facebook\.com|fb\.watch)\//i.test(url)) {
-        throw new Error("Vui lòng nhập một đường link Facebook hợp lệ.");
-      }
-      await new Promise(resolve => setTimeout(resolve, 1200));
-      setResult({
-        status: "blocked",
-        title: "Facebook Reel — bản phân tích mẫu",
-        message: "Facebook yêu cầu phiên đăng nhập để đọc video từ đường link chia sẻ này.",
-        sourceUrl: url,
+      const response = await fetch("/api/analyze", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ url }),
       });
-      setTranscript(sampleTranscript);
-      setPrompt(samplePrompt);
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Không thể phân tích video.");
+      setResult(data);
+      setTranscript(data.transcript || "");
+      setPrompt(data.prompt || "");
       localStorage.setItem("vutuai_trial_used", "1");
       setTrialUsed(true);
     } catch (e) {
@@ -167,16 +165,16 @@ export default function Home() {
           </div>
         ) : (
           <div className="results">
-            {result.status === "blocked" && <div className="notice"><strong>Facebook giới hạn truy cập tự động.</strong> Bản mẫu bên dưới minh họa chính xác trải nghiệm sản phẩm; để lấy nội dung thật, Reel cần ở chế độ công khai và cho phép xem không đăng nhập.</div>}
+            {result.warning && <div className="notice"><strong>Backend đã lấy được video MP4.</strong> {result.warning}</div>}
             <div className="video-card">
-              <div className="preview" style={result.image ? {backgroundImage:`url(${result.image})`} : {}}>
-                {!result.image && <><div className="noise"/><div className="play"><Play fill="currentColor"/></div><span>VIDEO PREVIEW</span></>}
+              <div className="preview">
+                {result.videoUrl ? <video src={result.videoUrl} poster={result.image || undefined} controls playsInline /> : <><div className="noise"/><div className="play"><Play fill="currentColor"/></div><span>VIDEO PREVIEW</span></>}
               </div>
               <div className="video-info">
                 <span className="tag">FACEBOOK REEL</span>
                 <h3>{result.title || "Video tham chiếu"}</h3>
-                <p>{result.status === "ready" ? "Đã tìm thấy luồng video công khai." : "Đang dùng chế độ trình diễn do Facebook yêu cầu đăng nhập."}</p>
-                {result.videoUrl ? <a className="download" href={result.videoUrl} download><Download size={17}/> Tải video MP4</a> : <a className="download" href={result.sourceUrl || url} target="_blank" rel="noreferrer"><ExternalLink size={17}/> Mở video gốc</a>}
+                <p>{result.status === "ready" ? "Đã tải video và nhận dạng lời thoại thành công." : "Đã tìm thấy và tải được luồng MP4 thật."}</p>
+                <a className="download" href={result.downloadUrl}><Download size={17}/> Tải video MP4</a>
               </div>
             </div>
 
