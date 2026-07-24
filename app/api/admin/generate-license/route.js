@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { activationCode, isAdminSession, normalizeEmail } from "../../../../lib/security";
+import { CREDIT_PACK_SIZE, issueCreditCode } from "../../../../lib/credits";
+import { isAdminSession, normalizeEmail } from "../../../../lib/security";
 
 export async function POST(request) {
   if (!isAdminSession(request.cookies.get("vutuai_admin")?.value)) {
@@ -10,5 +11,6 @@ export async function POST(request) {
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized)) {
     return NextResponse.json({ error: "Email khách hàng không hợp lệ." }, { status: 400 });
   }
-  return NextResponse.json({ email: normalized, code: activationCode(normalized), plan: "Trọn đời" });
+  const code = await issueCreditCode(normalized);
+  return NextResponse.json({ email: normalized, code, credits: CREDIT_PACK_SIZE, plan: `${CREDIT_PACK_SIZE} credit` });
 }

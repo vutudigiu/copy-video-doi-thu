@@ -66,6 +66,7 @@ export default function Home() {
   const [paymentSubmitted, setPaymentSubmitted] = useState(false);
   const [copiedValue, setCopiedValue] = useState("");
   const [unlocked, setUnlocked] = useState(false);
+  const [credits, setCredits] = useState(0);
   const [licenseEmail, setLicenseEmail] = useState("");
   const [licenseCode, setLicenseCode] = useState("");
   const [licenseError, setLicenseError] = useState("");
@@ -74,8 +75,11 @@ export default function Home() {
   const ready = useMemo(() => Boolean(result), [result]);
 
   useEffect(() => {
-    setTrialUsed(localStorage.getItem("vutuai_trial_used") === "1");
-    fetch("/api/license/status").then(r => r.json()).then(data => setUnlocked(Boolean(data.unlocked))).catch(() => {});
+    fetch("/api/license/status").then(r => r.json()).then(data => {
+      setUnlocked(Boolean(data.unlocked));
+      setCredits(Number(data.credits) || 0);
+      setTrialUsed(Boolean(data.trialUsed));
+    }).catch(() => {});
   }, []);
 
   async function copyPaymentValue(value, key) {
@@ -85,7 +89,7 @@ export default function Home() {
   }
 
   async function analyze() {
-    if (trialUsed && !unlocked) {
+    if ((trialUsed && !unlocked) || (unlocked && credits <= 0)) {
       setPaymentOpen(true);
       return;
     }
@@ -97,11 +101,14 @@ export default function Home() {
         body: JSON.stringify({ url }),
       });
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Không thể phân tích video.");
+      if (!response.ok) {
+        if (response.status === 402) setPaymentOpen(true);
+        throw new Error(data.error || "Không thể phân tích video.");
+      }
       setResult(data);
       setTranscript(data.transcript || "");
-      localStorage.setItem("vutuai_trial_used", "1");
-      setTrialUsed(true);
+      if (typeof data.creditsRemaining === "number") setCredits(data.creditsRemaining);
+      if (data.trialUsed) setTrialUsed(true);
     } catch (e) {
       setError(e.message);
     } finally { setLoading(false); }
@@ -116,7 +123,7 @@ export default function Home() {
     const data = await response.json();
     setLicenseLoading(false);
     if (!response.ok) return setLicenseError(data.error);
-    setUnlocked(true); setPaymentOpen(false);
+    setUnlocked(true); setCredits(Number(data.credits) || 0); setPaymentOpen(false);
   }
 
   return (
@@ -124,7 +131,7 @@ export default function Home() {
       <header>
         <a className="brand" href="#"><span className="brand-mark"><Play fill="currentColor" size={15}/></span><span>Copy Lời Thoại <span>Video Đối Thủ</span></span></a>
         <nav><a href="#tool">Công cụ</a><a href="#workflow">Cách hoạt động</a><a href="#faq">Lưu ý</a></nav>
-        <div className="status-pill"><i/> {unlocked ? "Đã mở khóa" : "AI Studio"}</div>
+        <div className="status-pill"><i/> {unlocked ? `${credits} credit` : "Dùng thử"}</div>
       </header>
 
       <section className="hero">
@@ -143,7 +150,7 @@ export default function Home() {
       <section id="tool" className="workspace">
         <div className="workspace-head">
           <div><span className="step">01</span><div><h2>Lấy lời thoại Facebook Reel</h2><p>Dùng thử 1 video công khai, thời lượng tối đa 60 giây</p></div></div>
-          <span className="secure"><i/> Xử lý bảo mật</span>
+          <span className="secure"><i/> {unlocked ? `Còn ${credits} credit` : "1 video dùng thử"}</span>
         </div>
         <div className="input-wrap">
           <Link2 size={21}/>
@@ -170,10 +177,10 @@ export default function Home() {
               <textarea value={transcript} onChange={e => setTranscript(e.target.value)} />
               <div className="editor-foot"><span>{result.title || "Facebook Reel"} • Có thể chỉnh sửa trực tiếp</span></div>
             </div>
-            {!unlocked && <div className="unlock-banner">
+            {(!unlocked || credits <= 0) && <div className="unlock-banner">
               <div className="unlock-icon"><LockKeyhole /></div>
-              <div><span>ĐÃ DÙNG XONG 1 VIDEO MIỄN PHÍ • TỐI ĐA 60 GIÂY</span><h3>Mở khóa không giới hạn video</h3><p>Truy cập toàn bộ tính năng chỉ với một lần thanh toán 99.000đ.</p></div>
-              <button onClick={() => setPaymentOpen(true)}>Mở Khóa Tất Cả Tính Năng <ArrowRight size={16}/></button>
+              <div><span>{unlocked ? "BẠN ĐÃ DÙNG HẾT CREDIT" : "ĐÃ DÙNG XONG 1 VIDEO MIỄN PHÍ • TỐI ĐA 60 GIÂY"}</span><h3>{unlocked ? "Mua thêm credit để tiếp tục" : "Nhận ngay 100 credit"}</h3><p>99.000đ = 100 credit. Mỗi video phân tích thành công trừ 1 credit.</p></div>
+              <button onClick={() => setPaymentOpen(true)}>{unlocked ? "Mua Thêm Credit" : "Mua 100 Credit"} <ArrowRight size={16}/></button>
             </div>}
           </div>
         )}
@@ -200,9 +207,9 @@ export default function Home() {
         <div className="modal-backdrop" onMouseDown={() => setPaymentOpen(false)}>
           <section className="payment-modal" onMouseDown={e => e.stopPropagation()}>
             <button className="modal-close" onClick={() => setPaymentOpen(false)} aria-label="Đóng"><X size={19}/></button>
-            <div className="payment-kicker"><LockKeyhole size={14}/> MỞ KHÓA TRỌN ĐỜI</div>
-            <h2>Mở khóa tất cả tính năng</h2>
-            <p className="payment-lead">Dùng thử 1 video tối đa 60 giây. Quét mã QR hoặc chuyển khoản thủ công để mở khóa.</p>
+            <div className="payment-kicker"><LockKeyhole size={14}/> GÓI 100 CREDIT</div>
+            <h2>{unlocked ? "Mua thêm 100 credit" : "Mở khóa 100 video"}</h2>
+            <p className="payment-lead">99.000đ = 100 credit. Mỗi video chép lời thành công sẽ trừ 1 credit.</p>
 
             <div className="payment-layout">
               <div className="qr-wrap">
@@ -210,7 +217,7 @@ export default function Home() {
                 <span>Quét bằng ứng dụng ngân hàng</span>
               </div>
               <div className="payment-details">
-                <div className="price"><span>THANH TOÁN MỘT LẦN</span><strong>99.000<small>đ</small></strong></div>
+                <div className="price"><span>100 CREDIT • 100 VIDEO</span><strong>99.000<small>đ</small></strong></div>
                 <div className="bank-row"><span>Ngân hàng</span><strong>MB BANK</strong></div>
                 <div className="bank-row"><span>Chủ tài khoản</span><strong>VU THI TU</strong></div>
                 <div className="bank-row copy-row">
@@ -231,12 +238,12 @@ export default function Home() {
               <div className="payment-success"><Check/><div><strong>Đã ghi nhận yêu cầu xác nhận</strong><span>Vui lòng gửi ảnh giao dịch qua Zalo để được kích hoạt tài khoản.</span></div></div>
             )}
             <a className="zalo-button" href="https://zalo.me/84973671215" target="_blank" rel="noreferrer"><MessageCircle size={19}/> NHẮN TIN ZALO CHO VŨ TƯ <ExternalLink size={15}/></a>
-            <div className="license-divider"><span>ĐÃ NHẬN MÃ KÍCH HOẠT?</span></div>
+            <div className="license-divider"><span>ĐÃ NHẬN MÃ CỘNG CREDIT?</span></div>
             <form className="license-form" onSubmit={activateLicense}>
               <input type="email" value={licenseEmail} onChange={e => setLicenseEmail(e.target.value)} placeholder="Email đã đăng ký" required />
               <input value={licenseCode} onChange={e => setLicenseCode(e.target.value.toUpperCase())} placeholder="Mã kích hoạt" required />
               {licenseError && <div className="license-error">{licenseError}</div>}
-              <button disabled={licenseLoading}><KeyRound size={17}/> {licenseLoading ? "ĐANG KIỂM TRA..." : "KÍCH HOẠT TRỌN ĐỜI"}</button>
+              <button disabled={licenseLoading}><KeyRound size={17}/> {licenseLoading ? "ĐANG KIỂM TRA..." : "CỘNG 100 CREDIT"}</button>
             </form>
             <p className="payment-note">Sau khi kiểm tra giao dịch, Vũ Tư AI sẽ hướng dẫn bạn kích hoạt quyền sử dụng.</p>
           </section>

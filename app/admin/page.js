@@ -60,19 +60,19 @@ export default function AdminPage() {
           </>
         ) : (
           <>
-            <div className="admin-heading"><KeyRound/><h1>Kích hoạt khách hàng</h1><p>Nhập đúng email khách đã thanh toán để tạo mã trọn đời.</p></div>
+            <div className="admin-heading"><KeyRound/><h1>Cộng credit khách hàng</h1><p>Nhập đúng email khách đã thanh toán để tạo mã cộng 100 credit.</p></div>
             <form onSubmit={generate}>
               <label>Email khách hàng</label>
               <input type="email" value={email} onChange={e => setEmail(e.target.value)} required placeholder="khachhang@gmail.com" />
               {error && <div className="admin-error">{error}</div>}
-              <button disabled={loading}><KeyRound/> {loading ? "Đang tạo..." : "Tạo mã kích hoạt"}</button>
+              <button disabled={loading}><KeyRound/> {loading ? "Đang tạo..." : "Tạo mã 100 credit"}</button>
             </form>
             {license && <div className="license-result">
-              <span>MÃ KÍCH HOẠT TRỌN ĐỜI</span>
+              <span>MÃ CỘNG 100 CREDIT • DÙNG MỘT LẦN</span>
               <strong>{license.code}</strong>
               <small>Cấp cho: {license.email}</small>
               <button onClick={copyCode}>{copied ? <Check/> : <Clipboard/>} {copied ? "Đã sao chép" : "Sao chép mã"}</button>
-              <p>Gửi email và mã này cho khách qua Zalo. Mã chỉ hợp lệ với đúng email phía trên.</p>
+              <p>Gửi email và mã này cho khách qua Zalo. Mã chỉ dùng một lần, đúng email và hết hạn sau 30 ngày.</p>
             </div>}
           </>
         )}
