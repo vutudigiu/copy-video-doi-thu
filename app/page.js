@@ -2,9 +2,9 @@
 
 import { useEffect, useMemo, useState } from "react";
 import {
-  ArrowRight, Check, ChevronDown, Clipboard, Download, ExternalLink,
-  FileText, Film, KeyRound, Link2, LoaderCircle, LockKeyhole, MessageCircle, Play,
-  Search, Sparkles, WandSparkles, X
+  ArrowRight, Check, ChevronDown, Clipboard, ExternalLink,
+  FileText, KeyRound, Link2, LoaderCircle, LockKeyhole, MessageCircle, Play,
+  Search, Sparkles, X
 } from "lucide-react";
 
 const SAMPLE_URL = "https://www.facebook.com/share/r/1DgHrgNvWv/";
@@ -61,8 +61,6 @@ export default function Home() {
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
   const [transcript, setTranscript] = useState("");
-  const [prompt, setPrompt] = useState("");
-  const [tab, setTab] = useState("transcript");
   const [trialUsed, setTrialUsed] = useState(false);
   const [paymentOpen, setPaymentOpen] = useState(false);
   const [paymentSubmitted, setPaymentSubmitted] = useState(false);
@@ -91,7 +89,7 @@ export default function Home() {
       setPaymentOpen(true);
       return;
     }
-    setLoading(true); setError(""); setResult(null); setTranscript(""); setPrompt("");
+    setLoading(true); setError(""); setResult(null); setTranscript("");
     try {
       const response = await fetch("/api/analyze", {
         method: "POST",
@@ -102,7 +100,6 @@ export default function Home() {
       if (!response.ok) throw new Error(data.error || "Không thể phân tích video.");
       setResult(data);
       setTranscript(data.transcript || "");
-      setPrompt(data.prompt || "");
       localStorage.setItem("vutuai_trial_used", "1");
       setTrialUsed(true);
     } catch (e) {
@@ -138,55 +135,40 @@ export default function Home() {
           <strong>VŨ TƯ AI - CHUYÊN GIA VIDEO AI</strong>
         </div>
         <div className="eyebrow"><Sparkles size={14}/> Video Intelligence Workspace</div>
-        <h1>Biến video đối thủ thành<br/><em>công thức sáng tạo.</em></h1>
-        <p>Dán link Facebook Reel. Nhận video MP4, toàn bộ lời thoại và prompt tái tạo chi tiết — trong một workspace duy nhất.</p>
-        <div className="trust-row"><span><Check/> Không watermark thêm</span><span><Check/> Prompt tiếng Việt</span><span><Check/> Tối ưu video dọc 9:16</span></div>
+        <h1>Sao chép toàn bộ lời thoại<br/><em>từ Facebook Reel.</em></h1>
+        <p>Dán đường link Reel công khai, AI sẽ nghe video và chuyển toàn bộ lời thoại thành văn bản để bạn sao chép ngay.</p>
+        <div className="trust-row"><span><Check/> Lời thoại tiếng Việt</span><span><Check/> Có thể chỉnh sửa</span><span><Check/> Sao chép một chạm</span></div>
       </section>
 
       <section id="tool" className="workspace">
         <div className="workspace-head">
-          <div><span className="step">01</span><div><h2>Phân tích Facebook Reel</h2><p>Dán đường link công khai để bắt đầu</p></div></div>
+          <div><span className="step">01</span><div><h2>Lấy lời thoại Facebook Reel</h2><p>Dán đường link công khai để bắt đầu</p></div></div>
           <span className="secure"><i/> Xử lý bảo mật</span>
         </div>
         <div className="input-wrap">
           <Link2 size={21}/>
           <input value={url} onChange={e => setUrl(e.target.value)} placeholder="https://www.facebook.com/reel/..." />
-          <button onClick={analyze} disabled={loading || !url}>{loading ? <LoaderCircle className="spin" size={18}/> : <Search size={18}/>} {loading ? "Đang đọc video..." : "Phân tích video"} <ArrowRight size={17}/></button>
+          <button onClick={analyze} disabled={loading || !url}>{loading ? <LoaderCircle className="spin" size={18}/> : <Search size={18}/>} {loading ? "Đang nghe và chép lời..." : "Lấy lời thoại"} <ArrowRight size={17}/></button>
         </div>
         <div className="sample"><span>LINK MẪU</span><button onClick={() => setUrl(SAMPLE_URL)}>facebook.com/share/r/1DgHrgNvWv/ <ExternalLink size={12}/></button></div>
         {error && <div className="error">{error}</div>}
 
         {!ready ? (
           <div className="empty">
-            <div className="empty-icon"><Film/></div>
-            <h3>Kết quả phân tích sẽ xuất hiện ở đây</h3>
-            <p>Hệ thống sẽ tách video, lời thoại và cấu trúc kịch bản theo từng cảnh.</p>
-            <div className="mini-flow"><span><Download/> MP4</span><b/><span><FileText/> Transcript</span><b/><span><WandSparkles/> AI Prompt</span></div>
+            <div className="empty-icon"><FileText/></div>
+            <h3>Toàn bộ lời thoại sẽ xuất hiện ở đây</h3>
+            <p>AI sẽ nghe nội dung trong Reel và chuyển lời nói thành văn bản tiếng Việt.</p>
           </div>
         ) : (
           <div className="results">
-            {result.warning && <div className="notice"><strong>Backend đã lấy được video MP4.</strong> {result.warning}</div>}
-            <div className="video-card">
-              <div className="preview">
-                {result.videoUrl ? <video src={result.videoUrl} poster={result.image || undefined} controls playsInline /> : <><div className="noise"/><div className="play"><Play fill="currentColor"/></div><span>VIDEO PREVIEW</span></>}
-              </div>
-              <div className="video-info">
-                <span className="tag">FACEBOOK REEL</span>
-                <h3>{result.title || "Video tham chiếu"}</h3>
-                <p>{result.status === "ready" ? "Đã tải video và nhận dạng lời thoại thành công." : "Đã tìm thấy và tải được luồng MP4 thật."}</p>
-                <a className="download" href={result.downloadUrl}><Download size={17}/> Tải video MP4</a>
-              </div>
-            </div>
-
             <div className="content-card">
               <div className="tabs">
-                <button className={tab === "transcript" ? "active" : ""} onClick={()=>setTab("transcript")}><FileText size={16}/> Lời thoại</button>
-                <button className={tab === "prompt" ? "active" : ""} onClick={()=>setTab("prompt")}><WandSparkles size={16}/> Prompt tái tạo</button>
-                <span>{tab === "transcript" ? transcript.length : prompt.length} ký tự</span>
+                <button className="active"><FileText size={16}/> Toàn bộ lời thoại</button>
+                <span>{transcript.length} ký tự</span>
               </div>
-              <div className="editor-head"><div><i/>{tab === "transcript" ? "TRANSCRIPT • TIẾNG VIỆT" : "MASTER PROMPT • VIDEO 9:16"}</div><CopyButton text={tab === "transcript" ? transcript : prompt}/></div>
-              <textarea value={tab === "transcript" ? transcript : prompt} onChange={e => tab === "transcript" ? setTranscript(e.target.value) : setPrompt(e.target.value)} />
-              <div className="editor-foot"><span>Có thể chỉnh sửa trực tiếp</span><button onClick={()=>setTab(tab === "transcript" ? "prompt" : "transcript")}>{tab === "transcript" ? "Xem prompt tái tạo" : "Xem lời thoại"} <ArrowRight size={14}/></button></div>
+              <div className="editor-head"><div><i/>TRANSCRIPT • TIẾNG VIỆT</div><CopyButton text={transcript} label="Sao chép lời thoại"/></div>
+              <textarea value={transcript} onChange={e => setTranscript(e.target.value)} />
+              <div className="editor-foot"><span>{result.title || "Facebook Reel"} • Có thể chỉnh sửa trực tiếp</span></div>
             </div>
             {!unlocked && <div className="unlock-banner">
               <div className="unlock-icon"><LockKeyhole /></div>
@@ -198,11 +180,11 @@ export default function Home() {
       </section>
 
       <section id="workflow" className="workflow">
-        <span className="section-kicker">WORKFLOW</span><h2>Một link. Ba tài sản sáng tạo.</h2>
+        <span className="section-kicker">WORKFLOW</span><h2>Một link. Toàn bộ lời thoại.</h2>
         <div className="cards">
-          <article><span>01</span><div className="icon"><Download/></div><h3>Video MP4</h3><p>Tải bản video công khai về máy để nghiên cứu nhịp dựng và bố cục.</p></article>
-          <article><span>02</span><div className="icon"><FileText/></div><h3>Toàn bộ lời thoại</h3><p>Transcript có mốc thời gian, chia rõ Hook, nội dung chính và CTA.</p></article>
-          <article><span>03</span><div className="icon"><WandSparkles/></div><h3>Prompt tái tạo</h3><p>Mô tả nhân vật, cảnh quay, thoại, hiệu ứng, âm thanh và CTA.</p></article>
+          <article><span>01</span><div className="icon"><Link2/></div><h3>Dán link Reel</h3><p>Nhập đường link Facebook Reel đang ở chế độ công khai.</p></article>
+          <article><span>02</span><div className="icon"><Sparkles/></div><h3>AI nghe video</h3><p>Hệ thống nhận dạng giọng nói và chép lại nội dung bằng tiếng Việt.</p></article>
+          <article><span>03</span><div className="icon"><Clipboard/></div><h3>Sao chép văn bản</h3><p>Chỉnh sửa trực tiếp rồi sao chép toàn bộ lời thoại chỉ với một nút.</p></article>
         </div>
       </section>
 
