@@ -145,6 +145,9 @@ export default function Home() {
         <h1>Sao chép toàn bộ lời thoại<br/><em>từ Facebook Reel.</em></h1>
         <p>Dán đường link Reel công khai, AI sẽ nghe video và chuyển toàn bộ lời thoại thành văn bản để bạn sao chép ngay.</p>
         <div className="trust-row"><span><Check/> Dùng thử 1 video tối đa 60 giây</span><span><Check/> Có thể chỉnh sửa</span><span><Check/> Sao chép một chạm</span></div>
+        <a className="zalo-guide-button" href="https://zalo.me/84973671215" target="_blank" rel="noreferrer">
+          <MessageCircle size={19}/> Liên hệ Zalo admin Vũ Tư để nhận thêm hướng dẫn tạo video AI <ExternalLink size={15}/>
+        </a>
       </section>
 
       <section id="tool" className="workspace">
