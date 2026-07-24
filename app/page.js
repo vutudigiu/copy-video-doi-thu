@@ -122,7 +122,7 @@ export default function Home() {
   return (
     <main>
       <header>
-        <a className="brand" href="#"><span className="brand-mark"><Play fill="currentColor" size={15}/></span><span>Copy<span>Video</span></span></a>
+        <a className="brand" href="#"><span className="brand-mark"><Play fill="currentColor" size={15}/></span><span>Copy Lời Thoại <span>Video Đối Thủ</span></span></a>
         <nav><a href="#tool">Công cụ</a><a href="#workflow">Cách hoạt động</a><a href="#faq">Lưu ý</a></nav>
         <div className="status-pill"><i/> {unlocked ? "Đã mở khóa" : "AI Studio"}</div>
       </header>
@@ -194,7 +194,7 @@ export default function Home() {
         <p>Công cụ được thiết kế để nghiên cứu cấu trúc nội dung công khai. Hãy thay đổi nhân vật, góc nhìn, hình ảnh và thông điệp; chỉ tải hoặc sử dụng nội dung khi bạn có quyền.</p>
       </section>
 
-      <footer><div className="brand"><span className="brand-mark"><Play fill="currentColor" size={14}/></span><span>Copy<span>Video</span></span></div><p>© 2026 Video Intelligence Studio</p><button>Tiếng Việt <ChevronDown size={13}/></button></footer>
+      <footer><div className="brand"><span className="brand-mark"><Play fill="currentColor" size={14}/></span><span>Copy Lời Thoại <span>Video Đối Thủ</span></span></div><p>© 2026 Vũ Tư AI</p><button>Tiếng Việt <ChevronDown size={13}/></button></footer>
 
       {paymentOpen && (
         <div className="modal-backdrop" onMouseDown={() => setPaymentOpen(false)}>
